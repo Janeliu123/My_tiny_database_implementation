@@ -1,0 +1,114 @@
+README:CS525 Assignment2 
+==================================================
+GROUP-5 :
+
+A20426786 Jiajia Liu
+A20409838 Peng Guo
+A20434064 Xuanyi Zhu
+==================================================
+FILE LIST :
+
+Makefile		buffer_mgr_stat.c	dt.h
+README			buffer_mgr_stat.h	storage_mgr.h
+buffer_mgr.c		dberror.c		test_assign2_1.c
+buffer_mgr.h		dberror.h		test_helper.h			
+==================================================
+STPES :
+
+1. Input the command : cd assign2
+2. Input the command : make
+3. Waiting for compiling
+4. Input the command : ./test1
+5. See the printing information of this project
+6. If you want to delete the compiled file, please type the command : make clean
+==================================================
+SOLUTION DESCRIPTION :
+1. Buffer Manager Interface Pool Handling
+	1）RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, 
+		  const int numPages, ReplacementStrategy strategy, 
+		  void *stratData);
+	- Checks the arguments and returns error if there are invalid arguments.
+	- Initializes the attributes of BM_BufferPool instance.
+
+    2）RC shutdownBufferPool(BM_BufferPool *const bm);
+    - Frees all the memory.
+    - Before destroying the pool writes the dirty pages in boffer pool back to disk.
+    - Returns error if hte pool has pinned pages.
+
+    3）RC forceFlushPool(BM_BufferPool *const bm);
+	- Writes all the dirty pages to the file on the disk.
+	- Returns RC_OF if there is no error.
+---------------------------------------------------------------------------------
+
+2. Buffer Manager Interface Access Pages
+	1）RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page);
+	- Mark a page as dirty by modifying the boolean associated with the page
+
+	2）RC unpinPage (BM_BufferPool *const bm, BM_PageHandle *const page);
+	- Unpin the page
+	- Decrease the fix count of the page
+	- Use pageNum to figure out which page to unpin
+
+	3）RC forcePage (BM_BufferPool *const bm, BM_PageHandle *const page);
+	- Write the current content of the page back to the page file on disk
+
+	4）RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page, 
+	    const PageNumber pageNum);
+	- Pin the page with page number pageNum
+	- Page selection and page replacement are implemented here
+	- We implemented 4 ways to pinPage: Clock, LFU, LRU, FIFO.
+
+---------------------------------------------------------------------------------
+
+3. Statistics Interface
+	1）PageNumber *getFrameContents (BM_BufferPool *const bm);
+	- Return an PageNUmbers array where the ith element was the page stored in the ith page frame.
+
+	2）bool *getDirtyFlags (BM_BufferPool *const bm);
+	- Returns an array of booleans where the ith element is true if the ith page frame is dirty.
+
+	3）int *getFixCounts (BM_BufferPool *const bm);
+	- Returns 0 for empty page frames.
+	- Returns an array of ints where the ith element is the fix count of the page stored in the ith page frame.
+
+
+	4）int getNumReadIO (BM_BufferPool *const bm);
+	- Returns the page numbers which was read from disk after initializing the buffer pool.
+
+	5）int getNumWriteIO (BM_BufferPool *const bm);
+	- Returns the page numbers which was written to the page file after initializing the buffer pool.
+
+---------------------------------------------------------------------------------
+
+4. Define new error in "dberror.h"
+
+	//add some error infos
+	#define RC_BM_FOPEN_ERROR 5
+	#define RC_BM_FWRITE_ERROR 6
+	#define RC_BM_FCLOSE_ERROR 7
+	#define RC_BM_NON_EXISTING_PAGE 8
+	#define RC_BM_SHUTDOWN_PINNED_PAGE 9
+	#define RC_BM_PAGE_OVERFLOW 10
+
+	#define RC_FILE_SYS_ERROR 100
+
+---------------------------------------------------------------------------------
+
+5. Change file "test_assign2_1.c"
+
+	//use follow function to test 4 ways for pinpage
+	int main (void) 
+	{
+		initStorageManager();
+		testName = "";
+		testCreatingAndReadingDummyPages();
+
+		testReadPage();
+		testFIFO();
+		testLFU();
+		testClock();
+		testLRU();
+		
+
+		return 0;
+	}

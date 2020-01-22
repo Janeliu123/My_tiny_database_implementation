@@ -1,0 +1,132 @@
+README:CS525 Assignment3
+==========================================================
+GROUP-5:
+
+A20426786 Jiajia Liu
+A20409838 Peng Guo
+A20434064 Xuanyi Zhu
+==========================================================
+FILE LIST:
+
+Makefile		      dberror.h		   rm_serializer.c
+README			   dt.h			      storage_mgr.h
+buffer_mgr.h		expr.c		   	tables.h
+buffer_mgr_stat.c	expr.h		   	test_assign3_1.c
+buffer_mgr_stat.h	record_mgr.c		test_expr.c
+dberror.c		   record_mgr.h		test_helper.h
+==========================================================
+STEPS:
+
+1. Input the command: cd assign3
+2. Input the command: make
+3. Waiting for compling
+4. Input the command: ./record_mgr
+5. See the printing information of this project
+6. If you want to see the test of expression, do the first step, and input command: make test_expr
+7. Waiting for compling
+8. Input the command: ./test_expr
+9. If you want to delete the compiled file, please type the command : make clean
+==========================================================
+SOLUTION DESCRIPTION:
+
+1.Table And Manager Functions.
+  1) initRecordManager (void *mgmtData):
+     - Stars record manager and initializes storage manager.
+  2) shutdownRecordManager ():
+     - Shuts down record manager and frees resources.
+  3）createTable (char *name, Schema *schema):
+     - Creates table and stores schema information in the empty page which is allocated.
+     - Initializes the buffer manager. Writes the page into the first page with the given name.
+  4) openTable (RM_TableData *rel, char *name):
+     - Opens the table. Pinned a new page and retrieved tbe total number of tuples.
+     - Set the schema information and unpin the page.
+  5) closeTable (RM_TableData *rel):
+     - Closes the table and frees the resources.
+  6) deleteTable (char *name):
+     - Deletes the table file and destroys the buffer manager.
+  7) int getNumTuples (RM_TableData *rel):
+     - The number of tuples is stored in record manager.
+     - Returns the number of tuples of the table.
+
+2.Handling Records In A Table.
+  1) RC insertRecord (RM_TableData *rel, Record *record):
+     - Inserts new record into table and record manager then assigns an RID to it and inserts the new record.
+     - Retrieves the data from table and set an RID for this record, set data inserted and the offset for the slot,set the free page for current in use and pin it. 
+     - copy new data into free space and mark the newly inserted record "+", unpin page after use and returns OK.
+  2) RC deleteRecord (RM_TableData *rel, RID id):
+     - Deletes a record from the table.
+     - If the table is not empty, retrieves data from table and pin the page in use and then update free page with id. Get record size and set offset to the slot.
+     - Delete the record, use "-" to mark page dirty which is changed.
+     - Unpin the page after use and returns OK.
+  3) RC updateRecord (RM_TableData *rel, Record *record):
+     - Updates the record with new value.
+     - Retries data from table and pin the page in use.
+     - According to RID to get record and position and then update and copy new value to the new position.
+     - Mark page dirty and unpin page after use and returns OK.
+  4) RC getRecord (RM_TableData *rel, RID id, Record *record):
+     - Retrieves record by table and RID.
+     - Pin page in use, get record size and offset to the data in record and find position to retrieve it.
+     - If record is not found returns the function, other then unpin the page in use and return OK.
+
+3. Scan Functions
+  1) RC startScan (RM_TableData *rel, RM_ScanHandle *scan, Expr *cond):
+  - Start a scan.
+  - Allocate memory to the scanManager.
+  - Initialize the RM_ScanHandle data structure as an argument to startScan(…).
+
+  2) RC next (RM_ScanHandle *scan, Record *record);
+  - Scan each record in the table.
+  - Store the record satisfying the condition in the location pointed by 'record’.
+  - Check if the table contains tuples.
+  - Return respective message code if the table does not contain tuples.
+  - Return the given error and reset the scanManager if NO condition is satisfied.
+
+ (3) RC closeScan (RM_ScanHandle *scan);
+  - Free all schema.
+  - Return RC_OK when successful.
+
+4. Schema Functions
+  1) RC createRecord (Record **record, Schema *schema):
+  - Return the size of a record in the specified schema.
+  - Get the attributes of the schema by checking the types of record.
+  - Calculate the size of record.
+
+  2) RC freeRecord (Record *record):
+  - Create a new schema in memory.
+  - Allocate memory space for the objects.
+  - Set attributes for the parameters.
+
+  3) RC getAttr (Record *record, Schema *schema, int attrNum, Value **value):
+  - Free the schema from the memory.
+  - Reset all attributes.
+  - Free memory.
+
+
+5. Attribute Functions
+  1) RC createRecord (Record **record, Schema *schema):
+  - Create a new record base on schema.
+  - Allocate memory space for new record and data for record.
+  - Set all record to -1 as initial empty record.
+  - Set data to '-' for tombstone records.
+  - Append \0 for NULL after tombstone records.
+
+  2) RC freeRecord (Record *record):
+  - Free the given record.
+  - Free memory space of the given record.
+
+  3) RC getAttr (Record *record, Schema *schema, int attrNum, Value **value):
+  - Get attributes from records in schema.
+  - Retrieve attribute offset base on attribute number.
+  - Get the attributes based on types.
+  - If attribute length and attribute number both equal to 1, the test would fail in test case.
+   
+  4) RC setAttr (Record *record, Schema *schema, int attrNum, Value *value);
+  - Set attribute from schema into record.
+  - Copy the attribute value into the location pointed by the data of each record.
+  - Retrieve attribute offset based on attribute number.
+
+
+6. Define new error in "dberror.h"
+   //add some error infos
+   #define RC_RM_NO_THIS_TUPLE 206
+   #define RC_RM_SCAN_CONDITION_NOT_FOUND 207

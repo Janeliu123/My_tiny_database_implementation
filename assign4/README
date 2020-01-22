@@ -1,0 +1,59 @@
+README:CS525 Assignment4
+==========================================================
+GROUP-5:
+
+A20426786 Jiajia Liu
+A20409838 Peng Guo
+A20434064 Xuanyi Zhu
+==========================================================
+FILE LIST:
+
+Makefile		   buffer_mgr.c 	 	  buffer_mgr.h
+buffer_mgr_stat.c  buffer_mgr_stat.h      btree_mgr.c
+btree_mgr.h        dberror.c              dberror.h
+dt.h               expr.c 				  expr.h
+record_mgr.c       ecord_mgr.h            rm_serializer.c
+storage_mgr.h      tables.h               test_assign4_1.c
+test_expr.c        test_helper.h          README
+==========================================================
+RUN STEPS:
+
+1. Input the command: cd assign4
+2. Input the command: make
+3. Waiting for compling
+4. Input the command: ./b_tree
+5. See the printing information of this project
+6. If you want to see the test of expression, do the first step, and input command: make test_expr
+7. Waiting for compling
+8. Input the command: ./test_expr
+9. If you want to delete the compiled file, please type the command : make clean
+==========================================================
+SOLUTION:
+
+1.init and shutdown index manager.
+	1) extern RC initIndexManager (void *mgmtData);
+	2) extern RC shutdownIndexManager ();
+2.create, destroy, open, and close an btree index.
+	1) extern RC createBtree (char *idxId, DataType keyType, int n);
+	2) extern RC openBtree (BTreeHandle **tree, char *idxId);
+	3) extern RC closeBtree (BTreeHandle *tree);
+	4) extern RC deleteBtree (char *idxId);
+3.access information about a b-tree.
+	1) extern RC getNumNodes (BTreeHandle *tree, int *result):
+	2) extern RC getNumEntries (BTreeHandle *tree, int *result);
+	3) extern RC getKeyType (BTreeHandle *tree, DataType *result);
+4. index access
+	1) extern RC findKey (BTreeHandle *tree, Value *key, RID *result);
+	2) extern RC insertKey (BTreeHandle *tree, Value *key, RID rid);
+	3) extern RC deleteKey (BTreeHandle *tree, Value *key);
+	4) extern RC openTreeScan (BTreeHandle *tree, BT_ScanHandle **handle);
+	5) extern RC nextEntry (BT_ScanHandle *handle, RID *result);
+5. use some Accessibility Functions for those functions above
+6. add some error information in dberror.h
+	#define RC_IM_KEY_NOT_FOUND 300
+	#define RC_IM_KEY_ALREADY_EXISTS 301
+	#define RC_IM_N_TO_LAGE 302
+	#define RC_IM_NO_MORE_ENTRIES 303
+	#define RC_IM_ERROR 304
+
+	#define RC_IM_EMPTY_TREE 305
